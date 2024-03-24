@@ -1,42 +1,60 @@
 import os
 import pygame
 import random
+import threading
+import copy
 from mutagen.mp3 import MP3
 
-def play_random_song_in_playlist_folder():
-    # Get the path to the 'playlist' folder in the same directory as the script
-    script_directory = os.path.dirname(os.path.abspath(__file__))
-    playlist_folder = os.path.join(script_directory, 'playlist')
+lastSongs = []
 
-    # Initialize the music player
-    pygame.mixer.init()
-    
-    # Set the volume (optional)
-    pygame.mixer.music.set_volume(0.5)
-
-    # Get a list of music files in the 'playlist' folder
-    music_files = [f for f in os.listdir(playlist_folder) if f.endswith('.mp3')]
-
-    if len(music_files) == 0:
-        print("No music files found in the 'playlist' folder.")
-        return
-
-    # Randomly select a music file from the 'playlist' folder
-    random_music_file = random.choice(music_files)
-    music_path = os.path.join(playlist_folder, random_music_file)
-    
-    # Get the duration of the selected music file
-    audio = MP3(music_path)
-    music_duration = audio.info.length
-    
-    # Load and play the selected music file
-    print(f"Now playing: {random_music_file}")
-    pygame.mixer.music.load(music_path)
-    pygame.mixer.music.play()
-
-    # Wait for the music file to finish playing
-    pygame.time.wait(int(music_duration * 1000))  # Convert duration to milliseconds
-
-    # Clean up after playing
+def stopMusic():
+    input("Press Enter to stop the music.\n")
     pygame.mixer.music.stop()
     pygame.mixer.quit()
+
+def removeArray(arr, toRemove):
+    for element in toRemove:
+        if element in arr:
+            arr.remove(element)
+    return arr
+
+def chooseSong(p):
+    playlist = copy.deepcopy(p)
+    length = len(playlist)
+    if length > 3:
+        playlist = removeArray(playlist, lastSongs)
+    chosen = random.choice(playlist)
+    lastSongs.append(chosen)
+    if len(lastSongs) > min(length-2, 5):
+        lastSongs.pop(0)
+    return chosen
+
+def MP3Player(playlistName='playlist'):
+    directory = os.path.dirname(os.path.abspath(__file__))
+    playlistFolder = os.path.join(directory, playlistName)
+
+    pygame.mixer.init()
+
+    playlist = [f for f in os.listdir(playlistFolder) if f.endswith('.mp3')]
+
+    if len(playlist) == 0:
+        print("No songs found in playlist. Check that all files are .mp3")
+        return
+
+    quitPlayer = threading.Thread(target=stopMusic)
+    quitPlayer.start()
+
+    while (1):
+        song = chooseSong(playlist)
+        songPath = os.path.join(playlistFolder, song)
+
+        audio = MP3(songPath)
+        duration = audio.info.length
+
+        print(f"Now playing: {song}")
+        pygame.mixer.music.load(songPath)
+        pygame.mixer.music.play()
+        pygame.time.wait(int(duration * 1000))
+        pygame.mixer.music.stop()
+
+MP3Player()
