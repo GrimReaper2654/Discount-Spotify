@@ -12,6 +12,7 @@ paused = False
 volume = 0.5
 
 def control():
+    global paused
     while 1:
         res = input("Press Enter to stop the music or enter command.\n")
         if res == '':
@@ -56,6 +57,7 @@ def chooseSong(p):
     return chosen
 
 def MP3Player(playlistName='playlist'):
+    global paused
     directory = os.path.dirname(os.path.abspath(__file__))
     playlistFolder = os.path.join(directory, playlistName)
 
@@ -85,7 +87,7 @@ def MP3Player(playlistName='playlist'):
         while time.time()-startTime <= duration:
             pygame.time.wait(1000)
             if paused:
-                duration += 1000
+                duration += 1
         pygame.mixer.music.stop()
 
 print('loading MP3 player')
