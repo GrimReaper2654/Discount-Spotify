@@ -13,6 +13,7 @@ volume = 0.5
 
 def control():
     global paused
+    global volume
     while 1:
         res = input("Press Enter to stop the music or enter command.\n")
         if res == '':
